@@ -18,6 +18,10 @@
             "url": "https://www.google.com/search?hl=en&as_q={}&as_qdr=all&as_sitesearch=https:%3A%2F%2Fdeveloper.mozilla.org&as_occt=any&safe=images"
         },
         {
+            "name": "html attribute definition - feeling lucky",
+            "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/{}"
+        },
+        {
             "name": "search css formal definition - feeling lucky",
             "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/{}#Formal_definition"
         },

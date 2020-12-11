@@ -23,9 +23,11 @@ from .no_selection import NoSelectionResult
 
 
 class EditorController(BaseController):
+    _css = False
     _editorReference = None
     _lastProvider = None
     _replace = False
+    _script = False
 
     def __init__(self, ankiMw):
         super(EditorController, self).__init__(ankiMw)
@@ -70,16 +72,43 @@ class EditorController(BaseController):
     def _callRepeatProviderOrShowMenu(self, editor):
         self._repeatProviderOrShowMenu()
 
+    def _toggleCSS(self, editor):
+        self._css = not self._css
+        if self._css and self._script:
+            self._script = False
+        feedback = 'Assigning from browser will wrap content in &lt;style&gt; tags\n and therefore it will be "invisible".' \
+            if self._css else "Assigning from browser will no longer wrap content in &lt;style&gt; tags."
+        Feedback.showInfo(feedback)
+
     def _toggleReplace(self, editor):
         self._replace = not self._replace
         feedback = "Assigning from browser will replace entire field" if self._replace else "Assigning from browser will append to field"
         Feedback.showInfo(feedback)
 
+    def _toggleScript(self, editor):
+        self._script = not self._script
+        if self._script and self._css:
+            self._css = False
+        feedback = 'Assigning from browser will wrap content in &lt;script&gt; tags\n and therefore it will be "invisible".' \
+            if self._script else "Assigning from browser will no longer wrap content in &lt;script&gt; tags."
+        Feedback.showInfo(feedback)
+
     def setupEditorButtons(self, buttons, editor):
-        buttons.insert(0, editor.addButton(os.path.join(CWD, 'assets', 'toggle-replace.png'),
+        self._js_button = editor.addButton(os.path.join(CWD, 'assets', 'toggle-script.png'),
+                                           "toggle script",
+                                           self._toggleScript,
+                                           tip="toggle script")
+        buttons.insert(0, self._js_button)
+        self._css_button = editor.addButton(os.path.join(CWD, 'assets', 'toggle-css.png'),
+                                           "toggle css",
+                                           self._toggleCSS,
+                                           tip="toggle css")
+        buttons.insert(0, self._css_button)
+        self._replace_button = editor.addButton(os.path.join(CWD, 'assets', 'toggle-replace.png'),
                                            "toggle replace",
                                            self._toggleReplace,
-                                           tip="toggle replace"))
+                                           tip="toggle replace")
+        buttons.insert(0, self._replace_button)
         buttons.insert(0, editor.addButton(os.path.join(CWD, 'assets', 'www.png'),
                                            "search web",
                                            self._callRepeatProviderOrShowMenu,
@@ -213,7 +242,10 @@ class EditorController(BaseController):
 
     def handleTextSelection(self, fieldIndex, value):
         """Adds the selected value to the given field of the current note"""
-
+        if self._css:
+            value = f'<style>{value}</style>'
+        if self._script:
+            value = f'<script>{value}</script>'
         newValue = value if self._replace else self._currentNote.fields[fieldIndex] + ' ' + value
         self._currentNote.fields[fieldIndex] = newValue
         self._editorReference.setNote(self._currentNote)
