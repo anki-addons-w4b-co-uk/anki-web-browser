@@ -9,22 +9,24 @@
 # ---------------------------------- ================ ---------------------------------
 
 import json
-
 import os
+import time
 
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QApplication, QWidget
 from anki.hooks import addHook
 from aqt.editor import Editor
 
 from .base_controller import BaseController
 from .config import service as cfg
 from .core import Feedback, CWD
+from .key_events import press_alt_s
 from .no_selection import NoSelectionResult
 
 
 class EditorController(BaseController):
     _css = False
     _editorReference = None
+    _format_syntax = False
     _lastProvider = None
     _replace = False
     _script = False
@@ -74,26 +76,50 @@ class EditorController(BaseController):
 
     def _toggleCSS(self, editor):
         self._css = not self._css
-        if self._css and self._script:
-            self._script = False
-        feedback = 'Assigning from browser will wrap content in &lt;style&gt; tags\n and therefore it will be "invisible".' \
+        if self._css:
+            if self._format_syntax:
+                self._format_syntax = False
+            elif self._script:
+                self._script = False
+        feedback = 'Assigning from browser will wrap content in &lt;style&gt; tags and therefore it will be "invisible".' \
             if self._css else "Assigning from browser will no longer wrap content in &lt;style&gt; tags."
+        Feedback.showInfo(feedback)
+
+    def _toggleFormatSyntax(self, editor):
+        self._format_syntax = not self._format_syntax
+        if self._format_syntax:
+            if self._css:
+                self._css = False
+            elif self._script:
+                self._script = False
+        feedback = "Assigning from browser will format content with sytax of selected language."  \
+            if self._format_syntax \
+            else "Assigning from browser will no longer format content with syntax of selected language."
         Feedback.showInfo(feedback)
 
     def _toggleReplace(self, editor):
         self._replace = not self._replace
-        feedback = "Assigning from browser will replace entire field" if self._replace else "Assigning from browser will append to field"
+        feedback = "Assigning from browser will replace entire field." \
+            if self._replace else "Assigning from browser will append to field."
         Feedback.showInfo(feedback)
 
     def _toggleScript(self, editor):
         self._script = not self._script
-        if self._script and self._css:
-            self._css = False
-        feedback = 'Assigning from browser will wrap content in &lt;script&gt; tags\n and therefore it will be "invisible".' \
+        if self._script:
+            if self._css:
+                self._css = False
+            elif self._format_syntax:
+                self._format_syntax = False
+        feedback = 'Assigning from browser will wrap content in &lt;script&gt; tags and therefore it will be "invisible".' \
             if self._script else "Assigning from browser will no longer wrap content in &lt;script&gt; tags."
         Feedback.showInfo(feedback)
 
     def setupEditorButtons(self, buttons, editor):
+        self._format_syntax_button = editor.addButton(os.path.join(CWD, 'assets', 'toggle-format-syntax.png'),
+                                           "toggle format syntax",
+                                           self._toggleFormatSyntax,
+                                           tip="toggle format syntax")
+        buttons.insert(0, self._format_syntax_button)
         self._js_button = editor.addButton(os.path.join(CWD, 'assets', 'toggle-script.png'),
                                            "toggle script",
                                            self._toggleScript,
@@ -247,5 +273,12 @@ class EditorController(BaseController):
         if self._script:
             value = f'<script>{value}</script>'
         newValue = value if self._replace else self._currentNote.fields[fieldIndex] + ' ' + value
-        self._currentNote.fields[fieldIndex] = newValue
-        self._editorReference.setNote(self._currentNote)
+        if self._format_syntax:
+            clipboard = QApplication.clipboard()
+            clipboard.setText(newValue)
+            self._editorReference.web.eval("focusField(%d);" % fieldIndex)
+            self._editorReference.parentWindow.activateWindow()
+            press_alt_s()
+        else:
+            self._currentNote.fields[fieldIndex] = newValue
+            self._editorReference.setNote(self._currentNote)
