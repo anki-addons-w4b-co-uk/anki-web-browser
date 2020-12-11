@@ -112,7 +112,7 @@ class AwBrowser(QMainWindow):
         self.setGeometry(400, 200, widthHeight[0], widthHeight[1])
         self.setMinimumWidth(620)
         self.setMinimumHeight(400)
-        self.setStyleSheet(Style.DARK_BG)
+        self.setStyleSheet(Style.LIGHT_BG)
 
         mainLayout = QVBoxLayout()
         mainLayout.setContentsMargins(0, 0, 0, 0)
@@ -120,7 +120,7 @@ class AwBrowser(QMainWindow):
 
         # -------------------- Top / toolbar ----------------------
         navtbar = QToolBar("Navigation")
-        navtbar.setIconSize(QSize(16, 16))
+        navtbar.setIconSize(QSize(24, 24))
         mainLayout.addWidget(navtbar)
 
         self.backBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'arrow-back.png')), "Back", self)
@@ -138,29 +138,24 @@ class AwBrowser(QMainWindow):
         navtbar.addAction(self.refreshBtn)
         self.refreshBtn.triggered.connect(self._onReload)
 
-        self.createProvidersMenu(navtbar)
-
-        self.newTabBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'plus-signal.png')), "New Tab (Ctrl+t)", self)
-        self.newTabBtn.setStatusTip("New tab (Ctrl+t)")
-        navtbar.addAction(self.newTabBtn)
-        self.newTabBtn.triggered.connect(lambda: self.add_new_tab())
-
         self._itAddress = QtWidgets.QLineEdit(self)
         self._itAddress.setObjectName("itSite")
+        font = self._itAddress.font()
+        font.setPointSize(10)
+        self._itAddress.setFont(font)
         self._itAddress.setStyleSheet('background-color: #F5F5F5;')
         self._itAddress.returnPressed.connect(self._goToAddress)
         navtbar.addWidget(self._itAddress)
 
-        cbGo = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'go-icon.png')), "Go", self)
-        cbGo.setObjectName("cbGo")
-        navtbar.addAction(cbGo)
-        cbGo.triggered.connect(self._goToAddress)
-
         self.stopBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'stop.png')), "Stop", self)
         self.stopBtn.setStatusTip("Stop loading")
         self.stopBtn.triggered.connect(self._onStopPressed)
-
         navtbar.addAction(self.stopBtn)
+
+        self.newTabBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'plus-signal.png')), "New Tab (Ctrl+t)", self)
+        self.newTabBtn.setStatusTip("New tab (Ctrl+t)")
+        navtbar.addAction(self.newTabBtn)
+        self.newTabBtn.triggered.connect(lambda: self.newProviderMenu(True))
 
         # -------------------- Center ----------------------
         widget = QWidget()
@@ -396,12 +391,7 @@ class AwBrowser(QMainWindow):
 
     # ---------------------------------------------------------------------------------
     def createProvidersMenu(self, parentWidget):
-        providerBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'gear-icon.png')), "Providers (Ctrl+p)", parentWidget)
-        providerBtn.setStatusTip("Search with Provider (Ctrl+p)")
-        providerBtn.triggered.connect(lambda: self.newProviderMenu())
-        parentWidget.addAction(providerBtn)
-
-        multiBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'multi-cogs.png')), "Providers in New tab (Ctrl+n)", parentWidget)
+        multiBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'plus-signal.png')), "New tab (Ctrl+n)", parentWidget)
         multiBtn.setStatusTip("Open providers in new tab (Ctrl+n)")
         multiBtn.triggered.connect(lambda: self.newProviderMenu(True))
         parentWidget.addAction(multiBtn)

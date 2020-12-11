@@ -112,6 +112,8 @@ class AwBrowserMenu:
         labelAct.setDisabled(True)
         m.addAction(labelAct)
         m.setTitle(Label.BROWSER_ASSIGN_TO)
+        # determine if we're copy/pasting or assigning and set up the menu items accordingly
+        # then that needs handling in the editor...
         for index, label in self._fields.items():
             act = QAction(label, m,
                           triggered=self._makeMenuAction(index, value, isLink))

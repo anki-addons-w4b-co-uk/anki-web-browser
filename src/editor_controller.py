@@ -257,7 +257,7 @@ class EditorController(BaseController):
 
         if (not imgReference) or not imgReference.startswith('<img'):
             Feedback.showWarn(
-                'URL invalid! Only URLs with references to image files are supported (ex: http://images.com/any.jpg,  any.png)')
+                'URL invalid! Only URLs with references to image files are supported (ex: http://images.com/any.jpg, any.png)')
             return
 
         Feedback.log('handleUrlSelection.imgReference: ' + imgReference)

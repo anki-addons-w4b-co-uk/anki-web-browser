@@ -62,6 +62,32 @@ class Style:
         }
     """
     
+    LIGHT_BG = """
+        QMessageBox {
+            background-color: #87A6C1;
+            color: #FFF;
+        }
+        AwBrowser {
+            background-color: #fff;
+        }
+        QLineEdit {
+            border: none;
+            color: #696a6c;
+            padding: 2px;
+        }
+        QTabBar::tab {
+            background-color: #e7eaed;
+            color: #696a6c;
+            padding: 7px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            border: 1px solid #a0a0a0;
+        }
+        QTabBar::tab:selected { 
+          background: #fff; 
+          margin-bottom: -1px; 
+        }
+    """
     # "background-color: #152032;"
     MENU_STYLE = """
             QMenu {
