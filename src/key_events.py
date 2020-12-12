@@ -1,6 +1,5 @@
 import ctypes
 from ctypes import wintypes
-import time
 
 user32 = ctypes.WinDLL('user32', use_last_error=True)
 
@@ -17,8 +16,10 @@ MAP_VK_TO_VSC = 0
 
 # msdn.microsoft.com/en-us/library/dd375731
 VK_TAB = 0x09
+VK_CTRL = 0x11
 VK_ALT = 0x12
-VK_S   = 0x53
+VK_S = 0x53
+VK_V = 0x56
 
 # C struct definitions
 
@@ -87,7 +88,15 @@ def release_key(hex_key_code):
     user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
 
 def press_alt_s():
-    press_key(VK_ALT)   # Alt
-    press_key(VK_S)    # S
-    release_key(VK_S)  # S~
-    release_key(VK_ALT) # Alt~
+    press_key(VK_ALT)
+    press_key(VK_S)
+    release_key(VK_S)
+    release_key(VK_ALT)
+    return
+
+def paste():
+    press_key(VK_CTRL)
+    press_key(VK_V)
+    release_key(VK_V)
+    release_key(VK_CTRL)
+    return

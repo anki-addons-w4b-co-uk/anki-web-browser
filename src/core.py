@@ -71,11 +71,23 @@ class Style:
             background-color: #fff;
         }
         QLineEdit {
-            border: none;
-            color: #696a6c;
+            background-color: #f5f5f5;
+            border: 1px solid #fff;
+            border-radius: 25px;
+            color: #d0d0d0;
             padding: 2px;
         }
-        QTabBar::tab {
+        QProgressBar {
+            border: 1px solid #fff;
+            border-radius: 5px;
+            background-color: #fff;
+         }
+        
+         QProgressBar::chunk {
+             background-color: #e0e0e0;
+             width: 20px;
+         }
+         QTabBar::tab {
             background-color: #e7eaed;
             color: #696a6c;
             padding: 7px;
@@ -91,10 +103,10 @@ class Style:
     # "background-color: #152032;"
     MENU_STYLE = """
             QMenu {
-                background-color: #B0C4DE;
+                background-color: #f0f0f0;
                 color: #333;
             }
             QMenu::item:selected {
-                background-color: #6495ED;
+                background-color: #90c8f6;
             }
         """

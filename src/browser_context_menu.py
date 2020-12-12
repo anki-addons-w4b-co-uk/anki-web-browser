@@ -2,7 +2,7 @@
 from typing import List
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineContextMenuData
+from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineView, QWebEngineContextMenuData
 from PyQt5.QtWidgets import *
 
 from .core import Label, Feedback
@@ -25,9 +25,30 @@ class AwBrowserMenu:
     selectionHandler = None
     _lastAssignedField = None
 
+    _copy_paste_checked = False
+    _css_checked = False
+    _format_syntax_checked = False
+    _replace_checked = False
+    _script_checked = False
+
     def __init__(self, defaultOptions: List[StandardMenuOption]):
         self._web = None
         self.generationOptions = defaultOptions
+
+    def on_copy_paste_toggled(self, checked: bool):
+        self._copy_paste_checked = checked
+
+    def on_css_toggled(self, checked: bool):
+        self._css_checked = checked
+
+    def on_format_syntax_toggled(self, checked: bool):
+        self._format_syntax_checked = checked
+
+    def on_replace_toggled(self, checked: bool):
+        self._replace_checked = checked
+
+    def on_script_toggled(self, checked: bool):
+        self._script_checked = checked
 
     def setCurrentWeb(self, webReference: QWebEngineView):
         self._web = webReference
@@ -40,7 +61,8 @@ class AwBrowserMenu:
 
         def _processMenuSelection():
             self._lastAssignedField = field
-            self.selectionHandler(field, value, isLink)
+            self.selectionHandler(field, value, self._replace_checked, self._copy_paste_checked,
+                                  self._format_syntax_checked, self._css_checked, self._script_checked, isLink)
 
         return _processMenuSelection
 
@@ -56,6 +78,8 @@ class AwBrowserMenu:
 
         isLink = False
         value = None
+        if self._copy_paste_checked:
+            self._web.triggerPageAction(QWebEnginePage.Copy)
         if self._web.selectedText():
             isLink = False
             value = self._web.selectedText()
@@ -112,11 +136,8 @@ class AwBrowserMenu:
         labelAct.setDisabled(True)
         m.addAction(labelAct)
         m.setTitle(Label.BROWSER_ASSIGN_TO)
-        # determine if we're copy/pasting or assigning and set up the menu items accordingly
-        # then that needs handling in the editor...
         for index, label in self._fields.items():
-            act = QAction(label, m,
-                          triggered=self._makeMenuAction(index, value, isLink))
+            act = QAction(label, m, triggered=self._makeMenuAction(index, value, isLink))
             m.addAction(act)
 
         action = m.exec_(self._web.mapToGlobal(evt.pos()))

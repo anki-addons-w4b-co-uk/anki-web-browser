@@ -7,9 +7,11 @@
 
 import os
 import urllib.parse
+from threading import Timer
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import QUrl, Qt, QSize, QObject
+from PyQt5.QtGui import QPixmap, QIcon
 
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineContextMenuData, QWebEngineSettings, QWebEnginePage
 from PyQt5.QtWidgets import *
@@ -83,6 +85,8 @@ class AwBrowser(QMainWindow):
     _web = None
     _context = None
     _currentWeb = None
+    
+    _toggle_actions = []
 
     providerList = []
 
@@ -95,6 +99,8 @@ class AwBrowser(QMainWindow):
         self._menuDelegator = AwBrowserMenu([
             StandardMenuOption('Open in new tab', lambda add: self.openUrl(add, True))
         ])
+
+        self.setFocus()
 
         # self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
@@ -109,7 +115,7 @@ class AwBrowser(QMainWindow):
     def setupUI(self, widthHeight: tuple):
         self.setWindowTitle(AwBrowser.TITLE)
         self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        self.setGeometry(400, 200, widthHeight[0], widthHeight[1])
+        self.setGeometry(2, 31, widthHeight[0], widthHeight[1])
         self.setMinimumWidth(620)
         self.setMinimumHeight(400)
         self.setStyleSheet(Style.LIGHT_BG)
@@ -123,34 +129,93 @@ class AwBrowser(QMainWindow):
         navtbar.setIconSize(QSize(24, 24))
         mainLayout.addWidget(navtbar)
 
-        self.backBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'arrow-back.png')), "Back", self)
-        self.backBtn.setStatusTip("Back to previous page")
+        self.backBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'arrow-back.png')), "back", self)
+        self.backBtn.setStatusTip("back to previous page")
         navtbar.addAction(self.backBtn)
         self.backBtn.triggered.connect(self._onBack)
 
-        self.forwardBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'arrow-forward.png')), "Forward", self)
-        self.forwardBtn.setStatusTip("Next visited page")
+        self.forwardBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'arrow-forward.png')), "forward", self)
+        self.forwardBtn.setStatusTip("forward to next page")
         navtbar.addAction(self.forwardBtn)
         self.forwardBtn.triggered.connect(self._onForward)
 
-        self.refreshBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'reload.png')), "Reload", self)
-        self.refreshBtn.setStatusTip("Reload")
-        navtbar.addAction(self.refreshBtn)
-        self.refreshBtn.triggered.connect(self._onReload)
+        navtbar.addSeparator()
+
+        replace_icon = QtGui.QIcon()
+        replace_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-replace-off.png'))), QIcon.Normal,
+                              QIcon.Off);
+        replace_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-replace.png'))), QIcon.Normal, QIcon.On);
+        self.replace_action = QAction(replace_icon, "replace", self)
+        self.replace_action.setStatusTip("replace")
+        self.replace_action.setCheckable(True)
+        navtbar.addAction(self.replace_action)
+        self.replace_action.toggled.connect(self._on_replace_toggled)
+
+        navtbar.addSeparator()
+
+        copy_paste_icon = QtGui.QIcon()
+        copy_paste_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-copy-paste-off.png'))), QIcon.Normal,
+                              QIcon.Off);
+        copy_paste_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-copy-paste.png'))), QIcon.Normal,
+                                QIcon.On);
+        self.copy_paste_action = QAction(copy_paste_icon, "copy -> paste", self)
+        self.copy_paste_action.setStatusTip("copy -> paste")
+        self.copy_paste_action.setCheckable(True)
+        navtbar.addAction(self.copy_paste_action)
+        self.copy_paste_action.toggled.connect(self._on_copy_paste_toggled)
+        self._toggle_actions.append(self.copy_paste_action)
+
+        navtbar.addSeparator()
+
+        format_syntax_icon = QtGui.QIcon()
+        format_syntax_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-format-syntax-off.png'))),
+                                    QIcon.Normal, QIcon.Off);
+        format_syntax_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-format-syntax.png'))), QIcon.Normal,
+                                    QIcon.On);
+        self.format_syntax_action = QAction(format_syntax_icon, "format syntax", self)
+        self.format_syntax_action.setStatusTip("format syntax")
+        self.format_syntax_action.setCheckable(True)
+        navtbar.addAction(self.format_syntax_action)
+        self.format_syntax_action.toggled.connect(self._on_format_syntax_toggled)
+        self._toggle_actions.append(self.format_syntax_action)
+
+        css_icon = QtGui.QIcon()
+        css_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-css-off.png'))), QIcon.Normal, QIcon.Off);
+        css_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-css.png'))), QIcon.Normal, QIcon.On);
+        self.css_action = QAction(css_icon, "css", self)
+        self.css_action.setStatusTip("css")
+        self.css_action.setCheckable(True)
+        navtbar.addAction(self.css_action)
+        self.css_action.toggled.connect(self._on_css_toggled)
+        self._toggle_actions.append(self.css_action)
+
+        script_icon = QtGui.QIcon()
+        script_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-script-off.png'))), QIcon.Normal, QIcon.Off);
+        script_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-script.png'))), QIcon.Normal, QIcon.On);
+        self.script_action = QAction(script_icon, "script", self)
+        self.script_action.setStatusTip("script")
+        self.script_action.setCheckable(True)
+        navtbar.addAction(self.script_action)
+        self.script_action.toggled.connect(self._on_script_toggled)
+        self._toggle_actions.append(self.script_action)
 
         self._itAddress = QtWidgets.QLineEdit(self)
         self._itAddress.setObjectName("itSite")
         font = self._itAddress.font()
-        font.setPointSize(10)
+        font.setPointSize(12)
         self._itAddress.setFont(font)
-        self._itAddress.setStyleSheet('background-color: #F5F5F5;')
         self._itAddress.returnPressed.connect(self._goToAddress)
         navtbar.addWidget(self._itAddress)
 
-        self.stopBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'stop.png')), "Stop", self)
-        self.stopBtn.setStatusTip("Stop loading")
-        self.stopBtn.triggered.connect(self._onStopPressed)
-        navtbar.addAction(self.stopBtn)
+        self.refresh_action = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'reload.png')), "Reload", self)
+        self.refresh_action.setStatusTip("Reload")
+        navtbar.addAction(self.refresh_action)
+        self.refresh_action.triggered.connect(self._onReload)
+
+        self.stop_action = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'stop.png')), "Stop", self)
+        self.stop_action.setStatusTip("Stop loading")
+        self.stop_action.triggered.connect(self._onStopPressed)
+        navtbar.addAction(self.stop_action)
 
         self.newTabBtn = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'plus-signal.png')), "New Tab (Ctrl+t)", self)
         self.newTabBtn.setStatusTip("New tab (Ctrl+t)")
@@ -183,17 +248,18 @@ class AwBrowser(QMainWindow):
         lbSite.setObjectName("label")
         lbSite.setText("Context: ")
         lbSite.setFixedWidth(70)
-        lbSite.setStyleSheet('font-weight: bold;')
+        lbSite.setStyleSheet('color: #d0d0d0;')
         bottomLayout.addWidget(lbSite)
 
         self.ctxWidget = QtWidgets.QLabel(bottomWidget)
         self.ctxWidget.width = 300
         self.ctxWidget.setStyleSheet('text-align: left;')
+        lbSite.setStyleSheet('color: #d0d0d0;')
         bottomLayout.addWidget(self.ctxWidget)
 
         self._loadingBar = QtWidgets.QProgressBar(bottomWidget)
-        self._loadingBar.setFixedWidth(100)
-        self._loadingBar.setProperty("value", 100)
+        self._loadingBar.setFixedWidth(250)
+        self._loadingBar.setTextVisible(False)
         self._loadingBar.setObjectName("loadingBar")
         bottomLayout.addWidget(self._loadingBar)
 
@@ -279,6 +345,7 @@ class AwBrowser(QMainWindow):
         def fn():
             title = browser.page().title() if len(browser.page().title()) < 18 else (browser.page().title()[:15] + '...')
             self._tabs.setTabText(index, title)
+            browser.setFocus()
         return fn
 
     def showRelatedTab(self, index: int):
@@ -338,21 +405,25 @@ class AwBrowser(QMainWindow):
         super().close()
 
     def onStartLoading(self):
-        self.stopBtn.setEnabled(True)
+        self.refresh_action.setVisible(False)
+        self.stop_action.setVisible(True)
         self._loadingBar.setProperty("value", 1)
 
     def onProgress(self, progress: int):
         self._loadingBar.setProperty("value", progress)
 
     def onLoadFinish(self, result):
-        self.stopBtn.setDisabled(True)
         self._loadingBar.setProperty("value", 100)
+        self.stop_action.setVisible(False)
+        self.refresh_action.setVisible(True)
+        self._loadingBar.reset()
 
     def _updateButtons(self):
         isLoading: bool = self._currentWeb is not None and self._currentWeb.isLoading
         if isLoading is None:
             isLoading = False
-        self.stopBtn.setEnabled(isLoading)
+        self.stop_action.setVisible(isLoading)
+        self.refresh_action.setVisible(not isLoading)
         self.forwardBtn.setEnabled(self._currentWeb is not None and self._currentWeb.history().canGoForward())
 
     def _goToAddress(self):
@@ -370,6 +441,25 @@ class AwBrowser(QMainWindow):
 
     def _onBack(self, *args):
         self._currentWeb.back()
+        
+    def _on_copy_paste_toggled(self, checked: bool):
+        self._menuDelegator.on_copy_paste_toggled(checked)
+        self._set_toggle_button_states(self.copy_paste_action)
+
+    def _on_format_syntax_toggled(self, checked: bool):
+        self._menuDelegator.on_format_syntax_toggled(checked)
+        self._set_toggle_button_states(self.format_syntax_action)
+
+    def _on_css_toggled(self, checked: bool):
+        self._menuDelegator.on_css_toggled(checked)
+        self._set_toggle_button_states(self.css_action)
+
+    def _on_replace_toggled(self, checked: bool):
+        self._menuDelegator.on_replace_toggled(checked)
+
+    def _on_script_toggled(self, checked: bool):
+        self._menuDelegator.on_script_toggled(checked)
+        self._set_toggle_button_states(self.script_action)
 
     def _onForward(self, *args):
         self._currentWeb.forward()
@@ -379,6 +469,13 @@ class AwBrowser(QMainWindow):
 
     def _onStopPressed(self):
         self._currentWeb.stop()
+
+    def _set_toggle_button_states(self, sender: QAction):
+        if sender.isChecked():
+            for action in self._toggle_actions:
+                if action != sender:
+                    if action.isChecked():
+                        action.setChecked(False)
 
     def welcome(self):
         self._web.setHtml(WELCOME_PAGE)
