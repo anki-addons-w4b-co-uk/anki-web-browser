@@ -92,8 +92,8 @@ class NoSelectionViewAdapter(Ui_Dialog):
         self.originalCancel = self.window.reject
         self.window.accept = self.onAccept
         self.window.reject = self.onCancel
-        self.rbUseTerm.setChecked(True)
-        self.selectionChanged()       
+        self.rbUseField.setChecked(True)
+        self.selectionChanged()
 
     def selectionChanged(self):
         if self.rbUseTerm.isChecked():

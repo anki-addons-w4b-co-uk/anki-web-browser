@@ -221,6 +221,8 @@ class EditorController(BaseController):
             if format_syntax:
                 clipboard = QApplication.clipboard()
                 clipboard.setText(newValue)
+                self._editorReference.web.eval("focusField(%d);" % fieldIndex)
+                self._editorReference.parentWindow.activateWindow()
                 press_alt_s()
             else:
                 self._currentNote.fields[fieldIndex] = newValue

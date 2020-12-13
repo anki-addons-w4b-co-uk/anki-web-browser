@@ -6,6 +6,10 @@
     "keepBrowserOpened": true,
     "menuShortcut": "Ctrl+Shift+B",
     "providers": [{
+            "name": "open c# in a nutshell",
+            "url": "file:///C:/Users/colin/OneDrive/Documents/_study/csharp/c_sharp_8_in_a_nutshell.html"
+        },
+        {
             "name": "search web",
             "url": "https://google.com/search?q={}"
         },
@@ -14,11 +18,7 @@
             "url": "https://www.google.com/search?tbm=isch&q={}"
         },
         {
-            "name": "search developer.mozzilla.org",
-            "url": "https://www.google.com/search?hl=en&as_q={}&as_qdr=all&as_sitesearch=https:%3A%2F%2Fdeveloper.mozilla.org&as_occt=any&safe=images"
-        },
-        {
-            "name": "html attribute definition - feeling lucky",
+            "name": "html global attributes",
             "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/{}"
         },
         {
@@ -26,8 +26,12 @@
             "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/{}#Formal_definition"
         },
         {
-            "name": "search css formal definition",
-            "url": "https://www.google.com/search?hl=en&as_q={}&as_epq=formal+definition&as_qdr=all&as_sitesearch=https:%3A%2F%2Fdeveloper.mozilla.org&as_occt=any&safe=images"
+            "name": "search developer.mozzilla.org",
+            "url": "https://developer.mozilla.org/en-US/search?q={}"
+        },
+        {
+            "name": "search mozilla formal definition",
+            "url": "https://developer.mozilla.org/en-US/search?q=formal+definition+{}"
         },
         {
             "name": "wikipedia",

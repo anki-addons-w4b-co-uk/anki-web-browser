@@ -449,6 +449,8 @@ class AwBrowser(QMainWindow):
     def _on_format_syntax_toggled(self, checked: bool):
         self._menuDelegator.on_format_syntax_toggled(checked)
         self._set_toggle_button_states(self.format_syntax_action)
+        if self.format_syntax_action.isChecked():
+            self.replace_action.setChecked(False)
 
     def _on_css_toggled(self, checked: bool):
         self._menuDelegator.on_css_toggled(checked)
@@ -456,6 +458,8 @@ class AwBrowser(QMainWindow):
 
     def _on_replace_toggled(self, checked: bool):
         self._menuDelegator.on_replace_toggled(checked)
+        if self.replace_action.isChecked():
+            self.format_syntax_action.setChecked(False)
 
     def _on_script_toggled(self, checked: bool):
         self._menuDelegator.on_script_toggled(checked)
