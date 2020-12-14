@@ -13,6 +13,7 @@ import os
 import time
 
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QApplication, QWidget
 from anki.hooks import addHook
 from aqt.editor import Editor
@@ -20,7 +21,7 @@ from aqt.editor import Editor
 from .base_controller import BaseController
 from .config import service as cfg
 from .core import Feedback, CWD
-from .key_events import paste, press_alt_s
+from .key_events import delete, paste, press_alt_s, select_all
 from .no_selection import NoSelectionResult
 
 
@@ -71,7 +72,25 @@ class EditorController(BaseController):
     def _callRepeatProviderOrShowMenu(self, editor):
         self._repeatProviderOrShowMenu()
 
+    def _delete(self, editor):
+        delete()
+
+    def _select_all(self, editor):
+        select_all()
+
     def setupEditorButtons(self, buttons, editor):
+        buttons.insert(0, editor.addButton(os.path.join(CWD, 'assets', 'delete.png'),
+                                           "delete F3",
+                                           self._delete,
+                                           tip="delete F3",
+                                           keys=QKeySequence(Qt.Key_F3),
+                                           ))
+        buttons.insert(0, editor.addButton(os.path.join(CWD, 'assets', 'select-all.png'),
+                                           "select all F2",
+                                           self._select_all,
+                                           tip="select all F2",
+                                           keys=QKeySequence(Qt.Key_F2),
+                                           ))
         buttons.insert(0, editor.addButton(os.path.join(CWD, 'assets', 'reconnect.png'),
                                            "reconnect",
                                            self.newLoadNote,
@@ -209,27 +228,23 @@ class EditorController(BaseController):
 
     def handleTextSelection(self, fieldIndex, value, replace, copy_paste, format_syntax, css, script):
         """Adds the selected value to the given field of the current note"""
-        if copy_paste:
+        if copy_paste or format_syntax:
             if replace:
                 self._currentNote.fields[fieldIndex] = ''
                 self._editorReference.setNote(self._currentNote)
             self._editorReference.web.eval("focusField(%d);" % fieldIndex)
             self._editorReference.parentWindow.activateWindow()
-            paste()
+            if copy_paste:
+                paste()
+            else:
+                press_alt_s()
         else:
             if css:
                 value = f'<style>{value}</style>'
             elif script:
                 value = f'<script>{value}</script>'
             newValue = value if replace else self._currentNote.fields[fieldIndex] + ' ' + value
-            if format_syntax:
-                clipboard = QApplication.clipboard()
-                clipboard.setText(newValue)
-                self._editorReference.web.eval("focusField(%d);" % fieldIndex)
-                self._editorReference.parentWindow.activateWindow()
-                press_alt_s()
-            else:
-                self._currentNote.fields[fieldIndex] = newValue
-                self._editorReference.setNote(self._currentNote)
-                self._editorReference.web.eval("focusField(%d);" % fieldIndex)
-                self._editorReference.parentWindow.activateWindow()
+            self._currentNote.fields[fieldIndex] = newValue
+            self._editorReference.setNote(self._currentNote)
+            self._editorReference.web.eval("focusField(%d);" % fieldIndex)
+            self._editorReference.parentWindow.activateWindow()

@@ -15,10 +15,12 @@ KEY_EVENT_F_SCANCODE    = 0x0008
 MAP_VK_TO_VSC = 0
 
 # msdn.microsoft.com/en-us/library/dd375731
-VK_TAB = 0x09
-VK_CTRL = 0x11
+VK_A = 0x41
 VK_ALT = 0x12
+VK_CTRL = 0x11
+VK_DEL = 0x2E
 VK_S = 0x53
+VK_TAB = 0x09
 VK_V = 0x56
 
 # C struct definitions
@@ -87,6 +89,11 @@ def release_key(hex_key_code):
                                dwFlags=KEY_EVENT_F_KEY_UP))
     user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
 
+def delete():
+    press_key(VK_DEL)
+    release_key(VK_DEL)
+    return
+
 def press_alt_s():
     press_key(VK_ALT)
     press_key(VK_S)
@@ -98,5 +105,12 @@ def paste():
     press_key(VK_CTRL)
     press_key(VK_V)
     release_key(VK_V)
+    release_key(VK_CTRL)
+    return
+
+def select_all():
+    press_key(VK_CTRL)
+    press_key(VK_A)
+    release_key(VK_A)
     release_key(VK_CTRL)
     return

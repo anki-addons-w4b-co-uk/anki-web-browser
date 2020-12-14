@@ -11,7 +11,7 @@ from threading import Timer
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import QUrl, Qt, QSize, QObject
-from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtGui import QPixmap, QIcon, QKeySequence
 
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineContextMenuData, QWebEngineSettings, QWebEnginePage
 from PyQt5.QtWidgets import *
@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import *
 from .config import service as cfg
 from .core import Label, Feedback, Style, CWD
 from .exception_handler import exceptionHandler
+from .key_events import select_all
 from .provider_selection import ProviderSelectionController
 
 from .browser_context_menu import AwBrowserMenu, StandardMenuOption
@@ -141,13 +142,22 @@ class AwBrowser(QMainWindow):
 
         navtbar.addSeparator()
 
+        self.select_all_action = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'select-all.png')), "select all F2", self)
+        self.select_all_action.setStatusTip("select all F2")
+        self.select_all_action.setShortcut(QKeySequence(Qt.Key_F2))
+        navtbar.addAction(self.select_all_action)
+        self.select_all_action.triggered.connect(self._on_select_all)
+
+        navtbar.addSeparator()
+
         replace_icon = QtGui.QIcon()
         replace_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-replace-off.png'))), QIcon.Normal,
                               QIcon.Off);
         replace_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-replace.png'))), QIcon.Normal, QIcon.On);
-        self.replace_action = QAction(replace_icon, "replace", self)
-        self.replace_action.setStatusTip("replace")
+        self.replace_action = QAction(replace_icon, "replace F3", self)
+        self.replace_action.setStatusTip("replace F3")
         self.replace_action.setCheckable(True)
+        self.replace_action.setShortcut(QKeySequence(Qt.Key_F3))
         navtbar.addAction(self.replace_action)
         self.replace_action.toggled.connect(self._on_replace_toggled)
 
@@ -158,9 +168,10 @@ class AwBrowser(QMainWindow):
                               QIcon.Off);
         copy_paste_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-copy-paste.png'))), QIcon.Normal,
                                 QIcon.On);
-        self.copy_paste_action = QAction(copy_paste_icon, "copy -> paste", self)
-        self.copy_paste_action.setStatusTip("copy -> paste")
+        self.copy_paste_action = QAction(copy_paste_icon, "copy -> paste F4", self)
+        self.copy_paste_action.setStatusTip("copy -> paste F4")
         self.copy_paste_action.setCheckable(True)
+        self.copy_paste_action.setShortcut(QKeySequence(Qt.Key_F4))
         navtbar.addAction(self.copy_paste_action)
         self.copy_paste_action.toggled.connect(self._on_copy_paste_toggled)
         self._toggle_actions.append(self.copy_paste_action)
@@ -172,9 +183,10 @@ class AwBrowser(QMainWindow):
                                     QIcon.Normal, QIcon.Off);
         format_syntax_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-format-syntax.png'))), QIcon.Normal,
                                     QIcon.On);
-        self.format_syntax_action = QAction(format_syntax_icon, "format syntax", self)
-        self.format_syntax_action.setStatusTip("format syntax")
+        self.format_syntax_action = QAction(format_syntax_icon, "format syntax F5", self)
+        self.format_syntax_action.setStatusTip("format syntax F5")
         self.format_syntax_action.setCheckable(True)
+        self.format_syntax_action.setShortcut(QKeySequence(Qt.Key_F5))
         navtbar.addAction(self.format_syntax_action)
         self.format_syntax_action.toggled.connect(self._on_format_syntax_toggled)
         self._toggle_actions.append(self.format_syntax_action)
@@ -182,9 +194,10 @@ class AwBrowser(QMainWindow):
         css_icon = QtGui.QIcon()
         css_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-css-off.png'))), QIcon.Normal, QIcon.Off);
         css_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-css.png'))), QIcon.Normal, QIcon.On);
-        self.css_action = QAction(css_icon, "css", self)
-        self.css_action.setStatusTip("css")
+        self.css_action = QAction(css_icon, "css F6", self)
+        self.css_action.setStatusTip("css F6")
         self.css_action.setCheckable(True)
+        self.css_action.setShortcut(QKeySequence(Qt.Key_F6))
         navtbar.addAction(self.css_action)
         self.css_action.toggled.connect(self._on_css_toggled)
         self._toggle_actions.append(self.css_action)
@@ -192,9 +205,10 @@ class AwBrowser(QMainWindow):
         script_icon = QtGui.QIcon()
         script_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-script-off.png'))), QIcon.Normal, QIcon.Off);
         script_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-script.png'))), QIcon.Normal, QIcon.On);
-        self.script_action = QAction(script_icon, "script", self)
-        self.script_action.setStatusTip("script")
+        self.script_action = QAction(script_icon, "script F7", self)
+        self.script_action.setStatusTip("script F7")
         self.script_action.setCheckable(True)
+        self.script_action.setShortcut(QKeySequence(Qt.Key_F7))
         navtbar.addAction(self.script_action)
         self.script_action.toggled.connect(self._on_script_toggled)
         self._toggle_actions.append(self.script_action)
@@ -449,8 +463,6 @@ class AwBrowser(QMainWindow):
     def _on_format_syntax_toggled(self, checked: bool):
         self._menuDelegator.on_format_syntax_toggled(checked)
         self._set_toggle_button_states(self.format_syntax_action)
-        if self.format_syntax_action.isChecked():
-            self.replace_action.setChecked(False)
 
     def _on_css_toggled(self, checked: bool):
         self._menuDelegator.on_css_toggled(checked)
@@ -458,12 +470,13 @@ class AwBrowser(QMainWindow):
 
     def _on_replace_toggled(self, checked: bool):
         self._menuDelegator.on_replace_toggled(checked)
-        if self.replace_action.isChecked():
-            self.format_syntax_action.setChecked(False)
 
     def _on_script_toggled(self, checked: bool):
         self._menuDelegator.on_script_toggled(checked)
         self._set_toggle_button_states(self.script_action)
+
+    def _on_select_all(self, *args):
+        select_all()
 
     def _onForward(self, *args):
         self._currentWeb.forward()

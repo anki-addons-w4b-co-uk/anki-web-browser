@@ -78,7 +78,7 @@ class AwBrowserMenu:
 
         isLink = False
         value = None
-        if self._copy_paste_checked:
+        if self._copy_paste_checked or self._format_syntax_checked:
             self._web.triggerPageAction(QWebEnginePage.Copy)
         if self._web.selectedText():
             isLink = False
