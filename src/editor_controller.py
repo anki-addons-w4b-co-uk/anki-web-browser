@@ -72,6 +72,10 @@ class EditorController(BaseController):
         self._repeatProviderOrShowMenu()
 
     def setupEditorButtons(self, buttons, editor):
+        buttons.insert(0, editor.addButton(os.path.join(CWD, 'assets', 'reconnect.png'),
+                                           "reconnect",
+                                           self.newLoadNote,
+                                           tip="reconnect web browser to this note"))
         buttons.insert(0, editor.addButton(os.path.join(CWD, 'assets', 'www.png'),
                                            "search web",
                                            self._callRepeatProviderOrShowMenu,
