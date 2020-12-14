@@ -172,9 +172,6 @@ class ConfigService:
         for name, url in map(lambda item: (item.name, item.url), config.providers):
             if not name or not url:
                 raise ValueError('There is an illegal value for one provider (%s %s)' % (name, url))
-            if not self._validURL.match(url):
-                raise ValueError('Some URL is invalid. Check the URL and if it contains {} that will be replaced by ' +
-                                 'the text: %s' % url)
 
         if not self.isValidSize(config.initialBrowserSize):
             raise ValueError('Initial browser size contains invalid values')
@@ -402,7 +399,7 @@ class ConfigViewAdapter(Ui_ConfigView):
         self.setupUi(self.window)
         w = self.window.width()
         h = self.window.height()
-        self.window.setFixedSize(w, h)
+        # self.window.setFixedSize(w, h)
 
         # self.verticalLayWidget.setFixedSize(510, 540)
         self.browserInfo.setVisible(self.cbSystemBrowser.isChecked()) #keep
