@@ -56,7 +56,7 @@ class EditorController(BaseController):
             return
 
         self._currentNote = self._editorReference.note
-        self.browser.clearContext()
+        # self.browser.clearContext()
         if not cfg.getConfig().keepBrowserOpened:
             self.browser.close()
 

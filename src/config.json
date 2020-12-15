@@ -22,15 +22,23 @@
             "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/{}"
         },
         {
-            "name": "search css formal definition - feeling lucky",
-            "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/{}#Formal_definition"
+            "name": "html attributes",
+            "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/{}"
+        },
+        {
+            "name": "html elements",
+            "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/{}"
+        },
+        {
+            "name": "search css",
+            "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/{}"
         },
         {
             "name": "search developer.mozzilla.org",
             "url": "https://developer.mozilla.org/en-US/search?q={}"
         },
         {
-            "name": "search mozilla formal definition",
+            "name": "search mozilla for q=formal+definition+{term}",
             "url": "https://developer.mozilla.org/en-US/search?q=formal+definition+{}"
         },
         {
