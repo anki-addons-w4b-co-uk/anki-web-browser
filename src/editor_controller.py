@@ -10,7 +10,7 @@
 
 import json
 import os
-import time
+import re
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
@@ -28,6 +28,7 @@ from .no_selection import NoSelectionResult
 class EditorController(BaseController):
     _editorReference = None
     _lastProvider = None
+    _browser_compatibility = re.compile(r"(Yes).*?\t|(Yes).*?$|(No).*?\t|(No).*?$|(\d+\.?\d?).*?\t|(\d+\.?\d?).*?$")
 
     def __init__(self, ankiMw):
         super(EditorController, self).__init__(ankiMw)
@@ -186,7 +187,8 @@ class EditorController(BaseController):
             ['No action available', 'Required: Text selected or link to image'])
         self.browser.setFields(fieldsNames)
 
-    def handleSelection(self, fieldIndex, value, replace, copy_paste, format_syntax, css, script, isUrl=False):
+    def handleSelection(self, fieldIndex, value, replace, copy_paste, format_syntax, css, script, browser_compatibility,
+                        is_url=False):
         """
             Callback from the web browser. 
             Invoked when there is a selection coming from the browser. It needs to be delivered to a given field
@@ -200,10 +202,11 @@ class EditorController(BaseController):
 
         self._editorReference.currentField = fieldIndex
 
-        if isUrl:
+        if is_url:
             self.handleUrlSelection(fieldIndex, value)
         else:
-            self.handleTextSelection(fieldIndex, value, replace, copy_paste, format_syntax, css, script)
+            self.handleTextSelection(fieldIndex, value, replace, copy_paste, format_syntax, css, script,
+                                     browser_compatibility)
 
     def handleUrlSelection(self, fieldIndex, value):
         """
@@ -226,18 +229,30 @@ class EditorController(BaseController):
         self._editorReference.web.eval(
             "setFormat('inserthtml', %s);" % json.dumps(imgReference))
 
-    def handleTextSelection(self, fieldIndex, value, replace, copy_paste, format_syntax, css, script):
-        """Adds the selected value to the given field of the current note"""
-        if copy_paste or format_syntax:
-            if replace:
-                self._currentNote.fields[fieldIndex] = ''
-                self._editorReference.setNote(self._currentNote)
-            self._editorReference.web.eval("focusField(%d);" % fieldIndex)
-            self._editorReference.parentWindow.activateWindow()
+    def handleTextSelection(self, fieldIndex, value, replace, copy_paste, format_syntax, css, script,
+                            browser_compatibility):
+        def paste_(not_needed):
             if copy_paste:
                 paste()
             else:
                 press_alt_s()
+
+        if copy_paste or format_syntax:
+            if replace:
+                self._currentNote.fields[fieldIndex] = ''
+                self._editorReference.setNote(self._currentNote)
+            self._editorReference.parentWindow.activateWindow()
+            self._editorReference.web.evalWithCallback("focusField(%d);" % fieldIndex, paste_)
+        elif browser_compatibility:
+            clipboard = QApplication.clipboard()
+            clip_text = clipboard.text()
+            matches = self._browser_compatibility.findall(clip_text)
+            for index, group in enumerate(matches):
+                for match in group:
+                    if match and match.lower() != 'no':
+                        self._currentNote.fields[fieldIndex + index] = match
+                        self._editorReference.setNote(self._currentNote)
+                        break
         else:
             if css:
                 value = f'<style>{value}</style>'

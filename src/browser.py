@@ -213,6 +213,17 @@ class AwBrowser(QMainWindow):
         self.script_action.toggled.connect(self._on_script_toggled)
         self._toggle_actions.append(self.script_action)
 
+        browser_compatibility_icon = QtGui.QIcon()
+        browser_compatibility_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-browser-compatibility-off.png'))), QIcon.Normal, QIcon.Off);
+        browser_compatibility_icon.addPixmap(QPixmap((os.path.join(CWD, 'assets', 'toggle-browser-compatibility.png'))), QIcon.Normal, QIcon.On);
+        self.browser_compatibility_action = QAction(browser_compatibility_icon, "browser compatibility F8", self)
+        self.browser_compatibility_action.setStatusTip("browser compatibility F8")
+        self.browser_compatibility_action.setCheckable(True)
+        self.browser_compatibility_action.setShortcut(QKeySequence(Qt.Key_F8))
+        navtbar.addAction(self.browser_compatibility_action)
+        self.browser_compatibility_action.toggled.connect(self._on_browser_compatibility_toggled)
+        self._toggle_actions.append(self.browser_compatibility_action)
+
         self._itAddress = QtWidgets.QLineEdit(self)
         self._itAddress.setObjectName("itSite")
         font = self._itAddress.font()
@@ -455,7 +466,11 @@ class AwBrowser(QMainWindow):
 
     def _onBack(self, *args):
         self._currentWeb.back()
-        
+
+    def _on_browser_compatibility_toggled(self, checked: bool):
+        self._menuDelegator.on_browser_compatibility_toggled(checked)
+        self._set_toggle_button_states(self.browser_compatibility_action)
+
     def _on_copy_paste_toggled(self, checked: bool):
         self._menuDelegator.on_copy_paste_toggled(checked)
         self._set_toggle_button_states(self.copy_paste_action)

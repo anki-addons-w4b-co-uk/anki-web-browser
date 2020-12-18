@@ -25,6 +25,7 @@ class AwBrowserMenu:
     selectionHandler = None
     _lastAssignedField = None
 
+    _browser_compatibility = False
     _copy_paste_checked = False
     _css_checked = False
     _format_syntax_checked = False
@@ -34,6 +35,9 @@ class AwBrowserMenu:
     def __init__(self, defaultOptions: List[StandardMenuOption]):
         self._web = None
         self.generationOptions = defaultOptions
+
+    def on_browser_compatibility_toggled(self, checked: bool):
+        self._browser_compatibility = checked
 
     def on_copy_paste_toggled(self, checked: bool):
         self._copy_paste_checked = checked
@@ -62,7 +66,8 @@ class AwBrowserMenu:
         def _processMenuSelection():
             self._lastAssignedField = field
             self.selectionHandler(field, value, self._replace_checked, self._copy_paste_checked,
-                                  self._format_syntax_checked, self._css_checked, self._script_checked, isLink)
+                                  self._format_syntax_checked, self._css_checked, self._script_checked,
+                                  self._browser_compatibility, isLink)
 
         return _processMenuSelection
 
@@ -78,7 +83,7 @@ class AwBrowserMenu:
 
         isLink = False
         value = None
-        if self._copy_paste_checked or self._format_syntax_checked:
+        if self._copy_paste_checked or self._format_syntax_checked or self._browser_compatibility:
             self._web.triggerPageAction(QWebEnginePage.Copy)
         if self._web.selectedText():
             isLink = False
