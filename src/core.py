@@ -73,9 +73,9 @@ class Style:
         QLineEdit {
             background-color: #f5f5f5;
             border: 1px solid #fff;
-            border-radius: 25px;
-            color: #d0d0d0;
-            padding: 2px;
+            border-radius: 15px;
+            color: #b0b0b0;
+            padding: 5px 15px;
         }
         QProgressBar {
             border: 1px solid #fff;

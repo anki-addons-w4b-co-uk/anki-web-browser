@@ -73,6 +73,27 @@ WELCOME_PAGE = """
 """
 
 
+class AddressLineEdit(QtWidgets.QLineEdit):
+    __select_all: bool
+
+    def __init__(self, parent=None):
+        super(AddressLineEdit, self).__init__(parent)
+        self.__select_all = True
+        return
+
+    def focusOutEvent(self, e):
+        super(AddressLineEdit, self).focusOutEvent(e)
+        self.__select_all = True
+        return
+
+    def mousePressEvent(self, e):
+        super(AddressLineEdit, self).mousePressEvent(e)
+        if self.__select_all:
+            self.selectAll()
+            self.__select_all = False
+        return
+
+
 # noinspection PyPep8Naming
 class AwBrowser(QMainWindow):
     """
@@ -224,7 +245,7 @@ class AwBrowser(QMainWindow):
         self.browser_compatibility_action.toggled.connect(self._on_browser_compatibility_toggled)
         self._toggle_actions.append(self.browser_compatibility_action)
 
-        self._itAddress = QtWidgets.QLineEdit(self)
+        self._itAddress = AddressLineEdit(self)
         self._itAddress.setObjectName("itSite")
         font = self._itAddress.font()
         font.setPointSize(12)
@@ -246,6 +267,16 @@ class AwBrowser(QMainWindow):
         self.newTabBtn.setStatusTip("New tab (Ctrl+t)")
         navtbar.addAction(self.newTabBtn)
         self.newTabBtn.triggered.connect(lambda: self.newProviderMenu(True))
+
+        self.zoom_out_action = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'zoom-out.png')), "Zoom out Ctrl-", self)
+        self.zoom_out_action.setStatusTip("Zoom out Ctrl-")
+        navtbar.addAction(self.zoom_out_action)
+        self.zoom_out_action.triggered.connect(self._on_zoom_out_action)
+
+        self.zoom_in_action = QAction(QtGui.QIcon(os.path.join(CWD, 'assets', 'zoom-in.png')), "Zoom in Ctrl+", self)
+        self.zoom_in_action.setStatusTip("Zoom in Ctrl+")
+        navtbar.addAction(self.zoom_in_action)
+        self.zoom_in_action.triggered.connect(self._on_zoom_in_action)
 
         # -------------------- Center ----------------------
         widget = QWidget()
@@ -501,6 +532,59 @@ class AwBrowser(QMainWindow):
 
     def _onStopPressed(self):
         self._currentWeb.stop()
+
+    zoom_in = {
+        0.25: 0.3,
+        0.3: 0.4,
+        0.4: 0.5,
+        0.5: 0.6,
+        0.6: 0.7,
+        0.7: 0.8,
+        0.8: 0.9,
+        0.9: 1,
+        1: 1.5,
+        1.5: 2,
+        2: 2.5,
+        2.5: 3,
+        3: 3.5,
+        3.5: 4,
+        4: 4.5,
+        4.5: 5,
+        5: 5
+    }
+
+    def _set_zoom_tooltips(self):
+        self.zoom_in_action.setToolTip(f'Zoom to {self.zoom_in[self._currentWeb.zoomFactor()].__str__()} Ctrl+')
+        self.zoom_out_action.setToolTip(f'Zoom to {self.zoom_out[self._currentWeb.zoomFactor()].__str__()} Ctrl-')
+
+    def _on_zoom_in_action(self):
+        self._currentWeb.setZoomFactor(self.zoom_in[self._currentWeb.zoomFactor()])
+        self._set_zoom_tooltips()
+        return
+
+    zoom_out = {
+        5: 4.5,
+        4.5: 4,
+        4: 3.5,
+        3.5: 3,
+        3: 2.5,
+        2.5: 2,
+        2: 1.5,
+        1.5: 1,
+        1: 0.9,
+        0.9: 0.8,
+        0.8: 0.7,
+        0.6: 0.5,
+        0.5: 0.4,
+        0.4: 0.3,
+        0.3: 0.25,
+        0.25: 0.25
+    }
+
+    def _on_zoom_out_action(self):
+        self._currentWeb.setZoomFactor(self.zoom_out[self._currentWeb.zoomFactor()])
+        self._set_zoom_tooltips()
+        return
 
     def _set_toggle_button_states(self, sender: QAction):
         if sender.isChecked():
