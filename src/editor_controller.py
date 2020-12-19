@@ -250,7 +250,8 @@ class EditorController(BaseController):
             for index, group in enumerate(matches):
                 for match in group:
                     if match and match.lower() != 'no':
-                        self._currentNote.fields[fieldIndex + index] = match
+                        new_value = match if replace else self._currentNote.fields[fieldIndex] + ' ' + match
+                        self._currentNote.fields[fieldIndex + index] = new_value.strip()
                         self._editorReference.setNote(self._currentNote)
                         break
         else:
@@ -258,8 +259,8 @@ class EditorController(BaseController):
                 value = f'<style>{value}</style>'
             elif script:
                 value = f'<script>{value}</script>'
-            newValue = value if replace else self._currentNote.fields[fieldIndex] + ' ' + value
-            self._currentNote.fields[fieldIndex] = newValue
+            new_value = value if replace else self._currentNote.fields[fieldIndex] + ' ' + value
+            self._currentNote.fields[fieldIndex] = new_value.strip()
             self._editorReference.setNote(self._currentNote)
             self._editorReference.web.eval("focusField(%d);" % fieldIndex)
             self._editorReference.parentWindow.activateWindow()
